@@ -1,0 +1,54 @@
+name: Move Issue to ToDo on Branch Creation
+
+on:
+  create:
+    branches:
+      - '**'
+
+jobs:
+  move-issue:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Get Branch Name
+        id: get_branch
+        run: echo "Branch_Name=${GITHUB_REF#refs/heads/}" >> $GITHUB_ENV
+
+      - name: Fetch issue number from branch name
+        id: fetch_issue_number
+        run: |
+          echo "Extracting issue number from branch name"
+          echo "Branch Name: $BRANCH_NAME"
+          ISSUE_NUMBER=$(echo "${BRANCH_NAME}" | grep -oE '[0-9]+')
+          echo "Extracted Issue Number: $ISSUE_NUMBER"
+          echo "ISSUE_NUMBER=${ISSUE_NUMBER}" >> $GITHUB_ENV
+
+      - name: Move Issue to ToDo
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const issueNumber = process.env.ISSUE_NUMBER;
+            const columnName = "Todo";  // The column where the issue should be moved
+
+            // Fetch the project board and column details
+            const projectBoards = await github.projects.listForRepo({
+              owner: context.repo.owner,
+              repo: context.repo.repo
+            });
+
+            const projectId = projectBoards.data[0].id; // Use the ID of the first project board
+
+            const columns = await github.projects.listColumns({
+              project_id: projectId
+            });
+
+            const columnId = columns.data.find(column => column.name === columnName).id;
+
+            // Move the issue to the Todo column
+            await github.projects.createCard({
+              column_id: columnId,
+              content_id: issueNumber,
+              content_type: "Issue"
+            });
