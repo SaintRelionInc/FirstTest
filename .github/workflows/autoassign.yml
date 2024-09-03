@@ -1,0 +1,25 @@
+name: Auto Assign
+
+on:
+  issues:
+    types: [opened]
+
+jobs:
+  auto-assign: 
+    runs-on: ubuntu-latest
+    steps:
+      - name: Assign Issue
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const assignees = ['SaintRelion'];
+            const issue_number = context.issue.number;
+
+            await github.issues.addAssignees({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: issue_number,
+              assignees: assignees
+            });
+
+    
