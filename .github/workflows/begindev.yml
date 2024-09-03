@@ -19,7 +19,10 @@ jobs:
       - name: Fetch issue number from branch name
         id: fetch_issue_number
         run: |
+          echo "Extracting issue number from branch name"
+          echo "Branch Name: $BRANCH_NAME"
           ISSUE_NUMBER=$(echo "${BRANCH_NAME}" | grep -oE '[0-9]+')
+          echo "Extracted Issue Number: $ISSUE_NUMBER"
           echo "ISSUE_NUMBER=${ISSUE_NUMBER}" >> $GITHUB_ENV
 
       - name: Move Issue to ToDo
